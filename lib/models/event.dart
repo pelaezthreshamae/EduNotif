@@ -7,10 +7,10 @@ class Event {
   final String title;
   final String? description;
   final DateTime dateTime;
-  final String? subject;          // e.g. "Math"
+  final String? subject;
   final EventType type;
   final Duration? reminderBefore;
-  final String? imageUrl;         // Supabase image storage
+  final String? imageUrl;
 
   Event({
     required this.id,
@@ -23,9 +23,7 @@ class Event {
     this.imageUrl,
   });
 
-  // ----------------------------------------------------------
-  // CopyWith (for immutability)
-  // ----------------------------------------------------------
+
 
   Event copyWith({
     String? id,
@@ -49,9 +47,7 @@ class Event {
     );
   }
 
-  // ----------------------------------------------------------
-  // LOCAL STORAGE MAP (camelCase)
-  // ----------------------------------------------------------
+
 
   Map<String, dynamic> toMap() {
     return {
@@ -81,18 +77,14 @@ class Event {
     );
   }
 
-  // ----------------------------------------------------------
-  // JSON helpers
-  // ----------------------------------------------------------
+
 
   String toJson() => json.encode(toMap());
 
   factory Event.fromJson(String source) =>
       Event.fromMap(json.decode(source) as Map<String, dynamic>);
 
-  // ----------------------------------------------------------
-  // SUPABASE MAP (snake_case)
-  // ----------------------------------------------------------
+
 
   Map<String, dynamic> toSupabaseMap(String userId) {
     return {

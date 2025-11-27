@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import '../models/event.dart';
 import '../providers/app_state.dart';
+import 'add_event_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -12,16 +12,29 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
+
     final selectedEvents = appState.eventsForDay(appState.selectedDay);
-    final upcoming = appState.upcomingEvents.take(5).toList();
+    final upcomingEvents = appState.upcomingEvents;
 
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color(0xFFF4F6FA),
 
-        // ----------------- HEADER -------------------
+        // ---------------- FAB BUTTON (RIGHT SIDE) ----------------
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: const Color(0xFF4753E3),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddEventScreen()),
+            );
+          },
+          child: const Icon(Icons.add, color: Colors.white, size: 28),
+        ),
+
         body: Column(
           children: [
+            // Header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(24, 40, 24, 30),
@@ -59,63 +72,59 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            // -------- Main Content Scrollable ---------
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildCalendar(context, appState),
                     const SizedBox(height: 20),
 
-                    // ---------- Today's Events ----------
-                    _SectionTitle(
-                      title:
-                      'Events on ${DateFormat.yMMMMd().format(appState.selectedDay)}',
+                    // Selected day events
+                    Text(
+                      "Events on ${_formatDate(appState.selectedDay)}",
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
 
                     if (selectedEvents.isEmpty)
-                      _emptyMessage("No events for this day.")
+                      const Text(
+                        "No events for this day.",
+                        style: TextStyle(color: Colors.black54),
+                      )
                     else
-                      ...selectedEvents.map((e) => _EventTile(event: e)),
+                      ...selectedEvents.map(_buildEventTile),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 25),
 
-                    // ---------- Upcoming ----------
-                    const _SectionTitle(title: 'Upcoming events'),
+                    // Upcoming events
+                    const Text(
+                      "Upcoming events",
+                      style: TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 10),
 
-                    if (upcoming.isEmpty)
-                      _emptyMessage("No upcoming events.")
+                    if (upcomingEvents.isEmpty)
+                      const Text(
+                        "No upcoming events.",
+                        style: TextStyle(color: Colors.black54),
+                      )
                     else
-                      ...upcoming.map((e) => _EventTile(event: e)),
+                      ...upcomingEvents.map(_buildEventTile),
                   ],
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _emptyMessage(String message) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Text(
-        message,
-        style: const TextStyle(
-          color: Colors.grey,
-          fontSize: 14,
-        ),
-      ),
-    );
-  }
-
-  // --------------------- Calendar Widget -----------------------
+  // Calendar Widget
   Widget _buildCalendar(BuildContext context, AppState appState) {
     return Container(
       padding: const EdgeInsets.all(12),
@@ -144,8 +153,7 @@ class HomeScreen extends StatelessWidget {
         headerStyle: const HeaderStyle(
           formatButtonVisible: false,
           titleCentered: true,
-          titleTextStyle:
-          TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         calendarStyle: CalendarStyle(
           todayDecoration: BoxDecoration(
@@ -162,109 +170,69 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-// ---------------------- SECTION TITLE -------------------------
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  const _SectionTitle({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-      ),
-    );
-  }
-}
-
-// ---------------------- EVENT TILE -----------------------------
-class _EventTile extends StatelessWidget {
-  final Event event;
-  const _EventTile({required this.event});
-
-  Color _typeColor(EventType type) {
-    switch (type) {
-      case EventType.exam:
-        return const Color(0xFFEF476F);
-      case EventType.deadline:
-        return const Color(0xFFF8961E);
-      case EventType.activity:
-        return const Color(0xFF06D6A0);
-      default:
-        return const Color(0xFF118AB2);
-    }
-  }
-
-  IconData _typeIcon(EventType type) {
-    switch (type) {
-      case EventType.exam:
-        return Icons.school;
-      case EventType.deadline:
-        return Icons.task_alt;
-      case EventType.activity:
-        return Icons.event;
-      default:
-        return Icons.info_outline;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final appState = context.read<AppState>();
-    final timeStr = DateFormat.jm().format(event.dateTime);
-
+  // Event card UI
+  Widget _buildEventTile(Event event) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
             color: Colors.black12.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           )
         ],
       ),
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: 22,
-          backgroundColor: _typeColor(event.type).withOpacity(0.15),
-          child: Icon(
-            _typeIcon(event.type),
-            color: _typeColor(event.type),
-            size: 22,
-          ),
-        ),
-        title: Text(
-          event.title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        subtitle: Text(
-          '${event.subject ?? ''}${event.subject != null ? ' · ' : ''}$timeStr',
-          style: const TextStyle(fontSize: 13, color: Colors.black54),
-        ),
-        trailing: PopupMenuButton<String>(
-          onSelected: (value) async {
-            if (value == 'delete') {
-              await appState.deleteEvent(event.id);
-            }
-          },
-          itemBuilder: (_) => const [
-            PopupMenuItem(
-              value: 'delete',
-              child: Text('Delete'),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFFD8DF),
+              shape: BoxShape.circle,
             ),
-          ],
-        ),
+            child: const Icon(Icons.school, color: Colors.redAccent),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  event.title,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "${event.subject ?? 'No subject'} • ${_formatTime(event.dateTime)}",
+                  style: const TextStyle(color: Colors.black54),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  // Time formatter
+  String _formatTime(DateTime dt) {
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final period = dt.hour >= 12 ? "PM" : "AM";
+
+    return "$hour:$minute $period";
+  }
+
+  // Date formatter
+  String _formatDate(DateTime date) {
+    return "${date.month}/${date.day}/${date.year}";
   }
 }

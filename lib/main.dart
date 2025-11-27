@@ -14,7 +14,6 @@ import 'auth/auth_gate.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Supabase with your constants from SupabaseService
   await Supabase.initialize(
     url: SupabaseService.supabaseUrl,
     anonKey: SupabaseService.supabaseAnonKey,
@@ -42,13 +41,12 @@ class EduNotifApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        home: const AuthGate(), // ⬅️ show auth first
+        home: const AuthGate(),
       ),
     );
   }
 }
 
-// Keep MainNavigation as your main app once logged in
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
 
@@ -59,9 +57,9 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
 
+  // Removed AddEventScreen from the main pages list
   final List<Widget> _pages = const [
     HomeScreen(),
-    AddEventScreen(),
     ScheduleScreen(),
     SettingsScreen(),
   ];
@@ -70,6 +68,10 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_currentIndex],
+
+
+
+      // Bottom Navigation Bar with 3 items
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
@@ -80,11 +82,6 @@ class _MainNavigationState extends State<MainNavigation> {
             icon: Icon(Icons.home_outlined),
             selectedIcon: Icon(Icons.home),
             label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.add_circle_outline),
-            selectedIcon: Icon(Icons.add_circle),
-            label: 'Add',
           ),
           NavigationDestination(
             icon: Icon(Icons.schedule_outlined),

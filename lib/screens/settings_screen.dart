@@ -11,10 +11,9 @@ class SettingsScreen extends StatelessWidget {
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color(0xFFF4F6FA),
-
         body: Column(
           children: [
-            // ---------- HEADER ----------
+            // Header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(24, 40, 24, 30),
@@ -51,75 +50,60 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
 
-            // ---------- BODY ----------
+            const SizedBox(height: 20),
+
+            // Settings List
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  _settingsCard(
-                    title: "Appearance",
-                    children: const [
-                      ListTile(
-                        leading: Icon(Icons.light_mode_outlined),
-                        title: Text("Theme"),
-                        subtitle: Text("Light (minimal)"),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _settingsCard(
-                    title: "Notifications",
-                    children: const [
-                      ListTile(
-                        leading: Icon(Icons.notifications_active_outlined),
-                        title: Text("Reminders"),
-                        subtitle: Text(
-                          "Ensure notifications are allowed in system settings.",
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    // Developer Section
+                    _settingsCard(
+                      title: "Developers",
+                      children: const [
+                        ListTile(
+                          leading: Icon(Icons.person, color: Colors.blue),
+                          title: Text("Michael Belencion"),
                         ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  _settingsCard(
-                    title: "About",
-                    children: const [
-                      ListTile(
-                        leading: Icon(Icons.info_outline),
-                        title: Text("About EDUNOTIF"),
-                        subtitle: Text(
-                          "A minimalist planner for students.\nBuilt with Flutter & Supabase.",
+                        ListTile(
+                          leading: Icon(Icons.person, color: Colors.blue),
+                          title: Text("Thresha Mae Pelaez"),
                         ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // ---------- Sign Out ----------
-                  Card(
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
+                        ListTile(
+                          leading: Icon(Icons.person, color: Colors.blue),
+                          title: Text("Jerose Jean Guanga"),
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.person, color: Colors.blue),
+                          title: Text("Ej Violata"),
+                        ),
+                      ],
                     ),
-                    child: ListTile(
-                      leading: const Icon(Icons.logout, color: Colors.red),
-                      title: const Text(
-                        "Sign out",
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
+
+                    const SizedBox(height: 16),
+
+                    Card(
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
                       ),
-                      onTap: () async {
-                        await supabaseService.signOut();
-                      },
+                      child: ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.red),
+                        title: const Text(
+                          "Sign out",
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onTap: () async {
+                          await supabaseService.signOut();
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -128,7 +112,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // ----------------- REUSABLE SETTINGS CARD ------------------
+  // Custom card builder
   Widget _settingsCard({
     required String title,
     required List<Widget> children,
@@ -144,10 +128,9 @@ class SettingsScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title
             Padding(
-              padding: const EdgeInsets.only(
-                  left: 16, top: 12, bottom: 6, right: 16),
+              padding:
+              const EdgeInsets.only(left: 16, top: 12, bottom: 6, right: 16),
               child: Text(
                 title,
                 style: const TextStyle(

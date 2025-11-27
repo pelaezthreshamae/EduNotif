@@ -28,7 +28,7 @@ class NotificationService {
       priority: Priority.high,
     );
 
-    // Just to ensure channel exists (Android 8+).
+
     await _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>()

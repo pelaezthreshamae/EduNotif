@@ -37,7 +37,7 @@ class ScheduleScreen extends StatelessWidget {
         backgroundColor: const Color(0xFFF4F6FA),
         body: Column(
           children: [
-            // ---------- Header ----------
+
             Container
               (
               width: double.infinity,
@@ -76,7 +76,7 @@ class ScheduleScreen extends StatelessWidget {
               ),
             ),
 
-            // ---------- Body ----------
+
             Expanded(
               child: SingleChildScrollView(
                 padding:
@@ -108,7 +108,7 @@ class ScheduleScreen extends StatelessWidget {
           ],
         ),
 
-        // ---------- FAB ----------
+
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
             _showClassDialog(context);
@@ -236,13 +236,13 @@ class _DaySection extends StatelessWidget {
   }
 }
 
-// ---------- Dialog for Add / Edit class ----------
+
 
 Future<void> _showClassDialog(BuildContext context,
     {ClassSession? existing}) async {
   final isEditing = existing != null;
 
-  // Initial values
+
   String selectedDay = existing?.dayOfWeek ?? 'Mon';
   final subjectController =
   TextEditingController(text: existing?.subject ?? '');

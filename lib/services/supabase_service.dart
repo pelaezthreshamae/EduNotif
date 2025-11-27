@@ -4,14 +4,13 @@ import '../models/event.dart';
 import '../models/class_session.dart';
 
 class SupabaseService {
-  // TODO: PUT YOUR REAL VALUES HERE
-  // Get them from Supabase dashboard → Settings → API
+
   static const String supabaseUrl = 'https://shwefzvwqjqupskfnxso.supabase.co';
   static const String supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNod2VmenZ3cWpxdXBza2ZueHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE3MDgwNjUsImV4cCI6MjA3NzI4NDA2NX0.ERYshPXD_OVMch7o8Rh0RijLHTaQv_af1zIiekWfAo4';
 
   final SupabaseClient client = Supabase.instance.client;
 
-  // ---------- AUTH ----------
+
 
   Future<String?> signUpWithEmail(String email, String password) async {
     try {
@@ -20,7 +19,7 @@ class SupabaseService {
         password: password,
       );
       if (res.user != null) {
-        return null; // success
+        return null;
       }
       return 'Sign up failed. Please try again.';
     } on AuthException catch (e) {
@@ -37,7 +36,7 @@ class SupabaseService {
         password: password,
       );
       if (res.session != null) {
-        return null; // success
+        return null;
       }
       return 'Sign in failed. Please check your credentials.';
     } on AuthException catch (e) {
@@ -53,7 +52,7 @@ class SupabaseService {
 
   User? get currentUser => client.auth.currentUser;
 
-  // ---------- EVENTS CRUD WITH SUPABASE ----------
+
 
   Future<List<Event>> fetchEvents() async {
     final user = currentUser;
@@ -127,7 +126,7 @@ class SupabaseService {
         .eq('user_id', user.id);
   }
 
-  // ---------- OPTIONAL: CLASS SESSIONS (if you sync them later) ----------
+
 
   Future<void> upsertClassSessions(List<ClassSession> sessions) async {
     final user = currentUser;

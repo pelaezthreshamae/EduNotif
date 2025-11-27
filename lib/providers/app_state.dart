@@ -9,7 +9,7 @@ class AppState extends ChangeNotifier {
   final _storage = LocalStorageService();
   final _notifications = NotificationService();
 
-  // Simple ID generator (no external packages)
+
   String _newId() => DateTime.now().microsecondsSinceEpoch.toString();
 
   DateTime _focusedDay = DateTime.now();
@@ -26,7 +26,6 @@ class AppState extends ChangeNotifier {
     _events = await _storage.loadEvents();
     _schedule = await _storage.loadSchedule();
 
-    // If schedule is empty, create a simple default timetable
     if (_schedule.isEmpty) {
       _schedule = _generateSampleSchedule();
       await _storage.saveSchedule(_schedule);
@@ -35,7 +34,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------- Events (existing) ----------
+
 
   List<Event> eventsForDay(DateTime day) {
     return _events
@@ -85,7 +84,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------- Class schedule (NEW editable CRUD) ----------
+
 
   List<ClassSession> sessionsForDay(String dayOfWeek) {
     return _schedule.where((s) => s.dayOfWeek == dayOfWeek).toList()
