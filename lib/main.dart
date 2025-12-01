@@ -20,7 +20,6 @@ void main() async {
 
   await NotificationService().init(); // 👈 ask permissions once on startup
 
-  // ✅ Use the correct root widget
   runApp(const EduNotifApp());
 }
 
@@ -72,13 +71,13 @@ class EduNotifApp extends StatelessWidget {
           filledButtonTheme: FilledButtonThemeData(
             style: ButtonStyle(
               backgroundColor:
-              const WidgetStatePropertyAll(Color(0xFF6C4BFF)),
+              const MaterialStatePropertyAll(Color(0xFF6C4BFF)),
               foregroundColor:
-              const WidgetStatePropertyAll(Colors.white),
-              padding: const WidgetStatePropertyAll(
+              const MaterialStatePropertyAll(Colors.white),
+              padding: const MaterialStatePropertyAll(
                 EdgeInsets.symmetric(vertical: 14, horizontal: 20),
               ),
-              shape: WidgetStatePropertyAll(
+              shape: MaterialStatePropertyAll(
                 RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -91,7 +90,7 @@ class EduNotifApp extends StatelessWidget {
             height: 72,
             backgroundColor: Colors.purpleAccent,
             indicatorColor: Color(0x336C4BFF), // soft purple highlight
-            labelTextStyle: WidgetStatePropertyAll(
+            labelTextStyle: MaterialStatePropertyAll(
               TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
