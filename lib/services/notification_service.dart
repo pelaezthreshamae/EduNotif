@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -17,13 +18,17 @@ class NotificationService {
   Future<void> init() async {
     if (_initialized) return;
 
-    // Timezone support
+    // 1️⃣ Timezone support
     tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Asia/Manila')); // Set your timezone
+    tz.setLocalLocation(tz.getLocation('Asia/Manila'));
 
+    // 2️⃣ Basic init settings
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    const iosInit = DarwinInitializationSettings();
+    const iosInit = DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
 
     const initSettings = InitializationSettings(
       android: androidInit,
@@ -31,6 +36,26 @@ class NotificationService {
     );
 
     await _plugin.initialize(initSettings);
+
+    // 3️⃣ Runtime permissions (Android 13+ & iOS)
+    if (Platform.isAndroid) {
+      final androidImpl = _plugin
+          .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+
+      // ✅ correct method name on latest versions
+      await androidImpl?.requestNotificationsPermission();
+    } else if (Platform.isIOS || Platform.isMacOS) {
+      final iosImpl = _plugin
+          .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+
+      await iosImpl?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    }
 
     _initialized = true;
   }
@@ -94,24 +119,27 @@ class NotificationService {
     return NotificationDetails(android: android, iOS: ios);
   }
 
-  /// Convert event.id to a valid notification ID
   int _idFor(String id) => id.hashCode & 0x7fffffff;
 
-  /// Schedule notification based on the event's reminder
   Future<void> scheduleNotification(Event event) async {
-    await init();
+    await init(); // make sure plugin + permissions are ready
 
+    // 1️⃣ If no reminder is set, do nothing
     if (event.reminderBefore == null) return;
 
+    // 2️⃣ Compute when the reminder should fire
     final scheduledDate = event.dateTime.subtract(event.reminderBefore!);
 
-    // Skip if date is already passed
+    // 3️⃣ If that time is already in the past, don't schedule
     if (scheduledDate.isBefore(DateTime.now())) return;
 
+    // 4️⃣ Convert to TZ time
     final tzTime = tz.TZDateTime.from(scheduledDate, tz.local);
 
+    // 5️⃣ Build notification details based on EventType
     final details = _buildDetails(event.type);
 
+    // 6️⃣ Actually schedule the notification
     await _plugin.zonedSchedule(
       _idFor(event.id),
       event.title,
@@ -125,13 +153,11 @@ class NotificationService {
     );
   }
 
-  /// Cancel individual notification
   Future<void> cancelNotification(String eventId) async {
     await init();
     await _plugin.cancel(_idFor(eventId));
   }
 
-  /// Cancel ALL notifications
   Future<void> cancelAll() async {
     await init();
     await _plugin.cancelAll();

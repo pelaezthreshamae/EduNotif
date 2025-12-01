@@ -10,7 +10,7 @@ import 'screens/settings_screen.dart';
 import 'services/notification_service.dart';
 import 'services/supabase_service.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Supabase.initialize(
@@ -18,8 +18,9 @@ Future<void> main() async {
     anonKey: SupabaseService.supabaseAnonKey,
   );
 
-  await NotificationService().init();
+  await NotificationService().init(); // 👈 ask permissions once on startup
 
+  // ✅ Use the correct root widget
   runApp(const EduNotifApp());
 }
 
@@ -33,7 +34,6 @@ class EduNotifApp extends StatelessWidget {
       child: MaterialApp(
         title: 'EDUNOTIF',
         debugShowCheckedModeBanner: false,
-
         theme: ThemeData(
           useMaterial3: true,
 
@@ -100,7 +100,6 @@ class EduNotifApp extends StatelessWidget {
             ),
           ),
         ),
-
         home: const AuthGate(),
       ),
     );
@@ -128,7 +127,6 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_currentIndex],
-
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
