@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:io' show Platform;           // Only imported when NOT web
+import 'package:flutter/foundation.dart'; // Needed for kIsWeb
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -18,11 +19,17 @@ class NotificationService {
   Future<void> init() async {
     if (_initialized) return;
 
+    // 🚫 Web does NOT support notifications → skip everything
+    if (kIsWeb) {
+      _initialized = true;
+      return;
+    }
+
     // 1️⃣ Timezone support
     tz.initializeTimeZones();
     tz.setLocalLocation(tz.getLocation('Asia/Manila'));
 
-    // 2️⃣ Basic init settings
+    // 2️⃣ Initialization settings
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -37,17 +44,14 @@ class NotificationService {
 
     await _plugin.initialize(initSettings);
 
-    // 3️⃣ Runtime permissions (Android 13+ & iOS)
+    // 3️⃣ Platform-specific permissions
     if (Platform.isAndroid) {
-      final androidImpl = _plugin
-          .resolvePlatformSpecificImplementation<
+      final androidImpl = _plugin.resolvePlatformSpecificImplementation<
           AndroidFlutterLocalNotificationsPlugin>();
 
-      // ✅ correct method name on latest versions
       await androidImpl?.requestNotificationsPermission();
     } else if (Platform.isIOS || Platform.isMacOS) {
-      final iosImpl = _plugin
-          .resolvePlatformSpecificImplementation<
+      final iosImpl = _plugin.resolvePlatformSpecificImplementation<
           IOSFlutterLocalNotificationsPlugin>();
 
       await iosImpl?.requestPermissions(
@@ -116,30 +120,36 @@ class NotificationService {
         break;
     }
 
-    return NotificationDetails(android: android, iOS: ios);
+    return NotificationDetails(
+      android: android,
+      iOS: ios,
+    );
   }
 
   int _idFor(String id) => id.hashCode & 0x7fffffff;
 
   Future<void> scheduleNotification(Event event) async {
-    await init(); // make sure plugin + permissions are ready
+    await init();
+
+    // ❌ Do NOT schedule notifications on Web
+    if (kIsWeb) return;
 
     // 1️⃣ If no reminder is set, do nothing
     if (event.reminderBefore == null) return;
 
-    // 2️⃣ Compute when the reminder should fire
+    // 2️⃣ Compute trigger time
     final scheduledDate = event.dateTime.subtract(event.reminderBefore!);
 
-    // 3️⃣ If that time is already in the past, don't schedule
+    // 3️⃣ Don't schedule if already past
     if (scheduledDate.isBefore(DateTime.now())) return;
 
-    // 4️⃣ Convert to TZ time
+    // 4️⃣ Convert to TZ datetime
     final tzTime = tz.TZDateTime.from(scheduledDate, tz.local);
 
-    // 5️⃣ Build notification details based on EventType
+    // 5️⃣ Details
     final details = _buildDetails(event.type);
 
-    // 6️⃣ Actually schedule the notification
+    // 6️⃣ Schedule
     await _plugin.zonedSchedule(
       _idFor(event.id),
       event.title,
@@ -155,11 +165,13 @@ class NotificationService {
 
   Future<void> cancelNotification(String eventId) async {
     await init();
+    if (kIsWeb) return;
     await _plugin.cancel(_idFor(eventId));
   }
 
   Future<void> cancelAll() async {
     await init();
+    if (kIsWeb) return;
     await _plugin.cancelAll();
   }
 }

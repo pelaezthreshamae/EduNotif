@@ -9,6 +9,7 @@ import 'screens/schedule_screen.dart';
 import 'screens/settings_screen.dart';
 import 'services/notification_service.dart';
 import 'services/supabase_service.dart';
+import 'package:flutter/foundation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +19,10 @@ void main() async {
     anonKey: SupabaseService.supabaseAnonKey,
   );
 
-  await NotificationService().init(); // 👈 ask permissions once on startup
+  // ⛔ DO NOT RUN NOTIFICATIONS ON WEB
+  if (!kIsWeb) {
+    await NotificationService().init();
+  }
 
   runApp(const EduNotifApp());
 }
