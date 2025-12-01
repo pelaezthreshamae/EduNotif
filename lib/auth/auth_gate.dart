@@ -17,7 +17,7 @@ class _AuthGateState extends State<AuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    // Listen to auth state changes
+
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {
@@ -25,11 +25,11 @@ class _AuthGateState extends State<AuthGate> {
             snapshot.data?.session ?? Supabase.instance.client.auth.currentSession;
 
         if (session == null) {
-          // Not logged in → show AuthScreen
+
           return const AuthScreen();
         }
 
-        // Logged in → show main app
+
         return const MainNavigation();
       },
     );

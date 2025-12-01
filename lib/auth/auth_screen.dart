@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/supabase_service.dart';
+import '../theme/pastel_background.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -14,6 +16,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
   bool _isSignIn = true;
   bool _isLoading = false;
+
+  bool _showPassword = false;
+  bool _showConfirmPassword = false;
 
   String _email = '';
   String _password = '';
@@ -61,215 +66,236 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = _isSignIn ? "Welcome Back" : "Create Account";
+    final title = _isSignIn ? "Welcome Back 👋" : "Create Account ✨";
     final subtitle = _isSignIn
-        ? "Sign in to continue using EDUNOTIF"
-        : "Register to get started";
+        ? "Sign in to continue using EDUNOTIF 📘"
+        : "Register to get started 🌸";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6FA),
-      body: Stack(
-        children: [
-          // Header Design
-          Container(
-            height: 260,
-            width: double.infinity,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF4753E3), Color(0xFF6C78F1)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(45),
-                bottomRight: Radius.circular(45),
-              ),
-            ),
-            padding: const EdgeInsets.only(top: 70, left: 30),
-            child: const Text(
-              "EDUNOTIF",
-              style: TextStyle(
-                fontSize: 40,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 2,
+      body: PastelBackground(
+        child: Stack(
+          children: [
+            // 🌸 HEADER TITLE (Black & White color change)
+            Positioned(
+              top: 80,
+              left: 32,
+              child: Text(
+                "EDUNOTIF ❤️",
+                style: TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black, // Changed to black
+                  shadows: [
+                    Shadow(
+                      blurRadius: 6,
+                      color: Colors.black.withOpacity(0.10),
+                      offset: const Offset(2, 2),
+                    )
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Login Card
-          Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                margin: const EdgeInsets.only(top: 180),
-                child: Card(
-                  elevation: 8,
-                  shadowColor: Colors.black26,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            subtitle,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
-                            ),
-                          ),
-
-                          const SizedBox(height: 25),
-
-                          // Email Input
-                          TextFormField(
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.email_outlined),
-                              labelText: "Email",
-                              filled: true,
-                              fillColor: Colors.grey.shade100,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
+            // 🌸 AUTH CARD (Glassmorphic)
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 22),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                    child: Container(
+                      padding: const EdgeInsets.all(28),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.45),
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 20,
+                            spreadRadius: 2,
+                            color: Colors.black.withOpacity(0.06),
+                            offset: const Offset(4, 6),
+                          )
+                        ],
+                      ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // 🌸 TITLE
+                            Text(
+                              title,
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1A1A1A),
                               ),
                             ),
-                            keyboardType: TextInputType.emailAddress,
-                            validator: (val) {
-                              if (val == null || val.trim().isEmpty) {
-                                return 'Email is required';
-                              }
-                              if (!val.contains('@')) {
-                                return 'Enter a valid email';
-                              }
-                              return null;
-                            },
-                            onSaved: (val) => _email = val!.trim(),
-                          ),
 
-                          const SizedBox(height: 16),
+                            const SizedBox(height: 6),
 
-                          // Password Input
-                          TextFormField(
-                            decoration: InputDecoration(
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              labelText: "Password",
-                              filled: true,
-                              fillColor: Colors.grey.shade100,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
+                            Text(
+                              subtitle,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.black.withOpacity(0.6),
                               ),
                             ),
-                            obscureText: true,
-                            validator: (val) {
-                              if (val == null || val.length < 6) {
-                                return 'Password too short';
-                              }
-                              return null;
-                            },
-                            onSaved: (val) => _password = val!.trim(),
-                          ),
 
-                          // Confirm Password (Sign-up only)
-                          if (!_isSignIn) ...[
-                            const SizedBox(height: 16),
-                            TextFormField(
-                              decoration: InputDecoration(
-                                prefixIcon: const Icon(Icons.lock_reset),
-                                labelText: "Confirm Password",
-                                filled: true,
-                                fillColor: Colors.grey.shade100,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                              ),
-                              obscureText: true,
+                            const SizedBox(height: 26),
+
+                            // 📧 EMAIL FIELD
+                            _styledField(
+                              label: "Email ✉️",
+                              icon: Icons.email_outlined,
                               validator: (val) {
-                                if (val == null || val.length < 6) {
-                                  return 'Password too short';
+                                if (val == null || val.isEmpty) {
+                                  return "Email is required";
+                                }
+                                if (!val.contains("@")) {
+                                  return "Enter a valid email";
                                 }
                                 return null;
                               },
-                              onSaved: (val) =>
-                              _confirmPassword = val!.trim(),
+                              onSaved: (val) => _email = val!.trim(),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // 🔒 PASSWORD FIELD
+                            _styledField(
+                              label: "Password 🔒",
+                              icon: Icons.lock_outline,
+                              obscure: !_showPassword,
+                              suffix: IconButton(
+                                onPressed: () {
+                                  setState(() => _showPassword = !_showPassword);
+                                },
+                                icon: Text(
+                                  _showPassword ? "🙈" : "👁️",
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                              ),
+                              validator: (val) {
+                                if (val == null || val.length < 6) {
+                                  return "Password too short";
+                                }
+                                return null;
+                              },
+                              onSaved: (val) => _password = val!.trim(),
+                            ),
+
+                            // 🔑 CONFIRM PASSWORD (SIGN UP ONLY)
+                            if (!_isSignIn) ...[
+                              const SizedBox(height: 16),
+                              _styledField(
+                                label: "Confirm Password 🔑",
+                                icon: Icons.lock_reset,
+                                obscure: !_showConfirmPassword,
+                                suffix: IconButton(
+                                  onPressed: () {
+                                    setState(() =>
+                                    _showConfirmPassword = !_showConfirmPassword);
+                                  },
+                                  icon: Text(
+                                    _showConfirmPassword ? "🙈" : "👁️",
+                                    style: const TextStyle(fontSize: 20),
+                                  ),
+                                ),
+                                validator: (val) {
+                                  if (val == null || val.length < 6) {
+                                    return "Password too short";
+                                  }
+                                  return null;
+                                },
+                                onSaved: (val) =>
+                                _confirmPassword = val!.trim(),
+                              )
+                            ],
+
+                            const SizedBox(height: 26),
+
+                            // 🌸 SUBMIT BUTTON (Updated color)
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton(
+                                onPressed: _isLoading ? null : _submit,
+                                style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all<Color>(Colors.black), // Set button background to black
+                                ),
+                                child: _isLoading
+                                    ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                                    : Text(
+                                  _isSignIn
+                                      ? "Sign In"
+                                      : "Create Account",
+                                  style: const TextStyle(color: Colors.white), // Text color white
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 16),
+
+                            // 🔄 TOGGLE SIGN IN / SIGN UP (Updated color)
+                            GestureDetector(
+                              onTap: _toggleMode,
+                              child: Text(
+                                _isSignIn
+                                    ? "Don't have an account? Sign up 🌸"
+                                    : "Already have an account? Sign in 👋",
+                                style: const TextStyle(
+                                  color: Colors.black, // Set toggle text color to black
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
-
-                          const SizedBox(height: 25),
-
-                          // Submit Button
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _submit,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF4753E3),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                elevation: 4,
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ))
-                                  : Text(
-                                _isSignIn
-                                    ? "Sign in"
-                                    : "Create account",
-                                style:
-                                const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Toggle Mode
-                          GestureDetector(
-                            onTap: _toggleMode,
-                            child: Text(
-                              _isSignIn
-                                  ? "Don’t have an account? Sign up"
-                                  : "Already have an account? Sign in",
-                              style: const TextStyle(
-                                color: Color(0xFF4753E3),
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
-        ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 🌸 UNIFIED TEXT FIELD STYLE
+  Widget _styledField({
+    required String label,
+    required IconData icon,
+    bool obscure = false,
+    Widget? suffix,
+    String? Function(String?)? validator,
+    void Function(String?)? onSaved,
+  }) {
+    return TextFormField(
+      obscureText: obscure,
+      validator: validator,
+      onSaved: onSaved,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: Colors.black), // Change icon color to black
+        suffixIcon: suffix,
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.75),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(18),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }

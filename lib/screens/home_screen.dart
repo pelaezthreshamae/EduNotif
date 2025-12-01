@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -5,6 +6,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../models/event.dart';
 import '../providers/app_state.dart';
 import 'add_event_screen.dart';
+import '../theme/pastel_background.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -18,134 +20,138 @@ class HomeScreen extends StatelessWidget {
 
     return SafeArea(
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4F6FA),
+        body: PastelBackground(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(26, 26, 26, 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Home 🏠",
+                      style: TextStyle(
+                        fontSize: 34,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF2A2A2A),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Plan your day beautifully 🌸",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.black.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-        // ---------------- FAB BUTTON (RIGHT SIDE) ----------------
+              // Body content (scrollable)
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildCalendar(context, appState),
+                      const SizedBox(height: 22),
+
+                      // Events section
+                      Text(
+                        "Events on ${_formatDate(appState.selectedDay)} 📅",
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF2A2A2A),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      if (selectedEvents.isEmpty)
+                        const Text(
+                          "No events for this date ✨",
+                          style: TextStyle(color: Colors.black54),
+                        )
+                      else
+                        ...selectedEvents.map(_buildEventTile),
+
+                      const SizedBox(height: 26),
+
+                      const Text(
+                        "Upcoming Events ⏳",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Color(0xFF2A2A2A),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+
+                      if (upcomingEvents.isEmpty)
+                        const Text(
+                          "Nothing coming up yet 🧋",
+                          style: TextStyle(color: Colors.black54),
+                        )
+                      else
+                        ...upcomingEvents.map(_buildEventTile),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // Floating action button
         floatingActionButton: FloatingActionButton(
-          backgroundColor: const Color(0xFF4753E3),
+          backgroundColor: const Color(0xFF6C4BFF),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
           onPressed: () {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const AddEventScreen()),
             );
           },
-          child: const Icon(Icons.add, color: Colors.white, size: 28),
-        ),
-
-        body: Column(
-          children: [
-            // Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(24, 40, 24, 30),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF4753E3), Color(0xFF6C78F1)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(35),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
-                  Text(
-                    "EDUNOTIF",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                  SizedBox(height: 6),
-                  Text(
-                    "Your daily planner at a glance",
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildCalendar(context, appState),
-                    const SizedBox(height: 20),
-
-                    // Selected day events
-                    Text(
-                      "Events on ${_formatDate(appState.selectedDay)}",
-                      style: const TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-
-                    if (selectedEvents.isEmpty)
-                      const Text(
-                        "No events for this day.",
-                        style: TextStyle(color: Colors.black54),
-                      )
-                    else
-                      ...selectedEvents.map(_buildEventTile),
-
-                    const SizedBox(height: 25),
-
-                    // Upcoming events
-                    const Text(
-                      "Upcoming events",
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-
-                    if (upcomingEvents.isEmpty)
-                      const Text(
-                        "No upcoming events.",
-                        style: TextStyle(color: Colors.black54),
-                      )
-                    else
-                      ...upcomingEvents.map(_buildEventTile),
-                  ],
-                ),
-              ),
-            ),
-          ],
+          child: const Icon(Icons.add, size: 30),
         ),
       ),
     );
   }
 
-  // Calendar Widget
   Widget _buildCalendar(BuildContext context, AppState appState) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black12.withOpacity(0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          )
+            blurRadius: 16,
+            offset: Offset(4, 4),
+            color: Color(0x22000000),
+          ),
+          BoxShadow(
+            blurRadius: 16,
+            offset: Offset(-4, -4),
+            color: Color(0x22FFFFFF),
+          ),
         ],
       ),
       child: TableCalendar<Event>(
         firstDay: DateTime.utc(2020, 1, 1),
-        lastDay: DateTime.utc(2030, 12, 31),
+        lastDay: DateTime.utc(2035, 12, 31),
         focusedDay: appState.focusedDay,
-        selectedDayPredicate: (day) => isSameDay(appState.selectedDay, day),
-        calendarFormat: CalendarFormat.month,
+        selectedDayPredicate: (day) =>
+            isSameDay(appState.selectedDay, day),
         startingDayOfWeek: StartingDayOfWeek.monday,
+        calendarFormat: CalendarFormat.month,
         eventLoader: (day) => appState.eventsForDay(day),
         onDaySelected: (selectedDay, focusedDay) {
           appState.setSelectedDay(selectedDay, focusedDay);
@@ -153,49 +159,57 @@ class HomeScreen extends StatelessWidget {
         headerStyle: const HeaderStyle(
           formatButtonVisible: false,
           titleCentered: true,
-          titleTextStyle: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          titleTextStyle: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF2A2A2A),
+          ),
         ),
         calendarStyle: CalendarStyle(
           todayDecoration: BoxDecoration(
-            color: const Color(0xFF4753E3).withOpacity(0.2),
+            color: const Color(0xFF6C4BFF).withOpacity(0.2),
             shape: BoxShape.circle,
           ),
           selectedDecoration: const BoxDecoration(
-            color: Color(0xFF4753E3),
+            color: Color(0xFF6C4BFF),
             shape: BoxShape.circle,
           ),
-          weekendTextStyle: const TextStyle(color: Colors.redAccent),
+          weekendTextStyle: const TextStyle(color: Colors.black54),
           selectedTextStyle: const TextStyle(color: Colors.white),
         ),
       ),
     );
   }
 
-  // Event card UI
   Widget _buildEventTile(Event event) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
+        color: Colors.white.withOpacity(0.90),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black12.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          )
+            blurRadius: 14,
+            offset: Offset(4, 4),
+            color: Color(0x22000000),
+          ),
+          BoxShadow(
+            blurRadius: 14,
+            offset: Offset(-4, -4),
+            color: Color(0x22FFFFFF),
+          ),
         ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: Color(0xFFFFD8DF),
+            decoration: BoxDecoration(
+              color: const Color(0xFFC7B8FF),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.school, color: Colors.redAccent),
+            child: const Text("📘", style: TextStyle(fontSize: 22)),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -205,14 +219,18 @@ class HomeScreen extends StatelessWidget {
                 Text(
                   event.title,
                   style: const TextStyle(
-                    fontSize: 17,
+                    fontSize: 18,
                     fontWeight: FontWeight.w600,
+                    color: Color(0xFF2A2A2A),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   "${event.subject ?? 'No subject'} • ${_formatTime(event.dateTime)}",
-                  style: const TextStyle(color: Colors.black54),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black54,
+                  ),
                 ),
               ],
             ),
@@ -222,16 +240,14 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  // Time formatter
+  // Helper methods
   String _formatTime(DateTime dt) {
     final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
     final minute = dt.minute.toString().padLeft(2, '0');
     final period = dt.hour >= 12 ? "PM" : "AM";
-
     return "$hour:$minute $period";
   }
 
-  // Date formatter
   String _formatDate(DateTime date) {
     return "${date.month}/${date.day}/${date.year}";
   }
