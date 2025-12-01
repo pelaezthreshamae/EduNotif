@@ -19,13 +19,14 @@ void main() async {
     anonKey: SupabaseService.supabaseAnonKey,
   );
 
-  // ⛔ DO NOT RUN NOTIFICATIONS ON WEB
+  // MUST be here
   if (!kIsWeb) {
     await NotificationService().init();
   }
 
   runApp(const EduNotifApp());
 }
+
 
 class EduNotifApp extends StatelessWidget {
   const EduNotifApp({super.key});
