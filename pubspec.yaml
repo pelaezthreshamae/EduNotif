@@ -5,26 +5,19 @@ publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: '^3.10.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
-  # UI
   cupertino_icons: ^1.0.8
   table_calendar: ^3.1.0
   intl: ^0.19.0
-
-  # State & Storage
   provider: ^6.1.2
   shared_preferences: ^2.3.0
-
-  # Notifications + Timezone (REQUIRED for sound + scheduling)
-  flutter_local_notifications: ^17.2.3
+  flutter_local_notifications: ^17.0.0
   timezone: ^0.9.4
-
-  # Backend
   supabase_flutter: ^2.3.4
 
 dev_dependencies:

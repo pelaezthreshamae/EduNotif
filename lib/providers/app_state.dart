@@ -2,13 +2,13 @@ import 'package:flutter/foundation.dart';
 
 import '../models/event.dart';
 import '../models/class_session.dart';
-import '../services/local_storage_service.dart';
+
 import '../services/notification_service.dart';
+import '../services/supabase_service.dart';
 
 class AppState extends ChangeNotifier {
-  final _storage = LocalStorageService();
-  final _notifications = NotificationService();
-
+  final _notify = NotificationService.instance;
+  final _supabase = SupabaseService.instance;
 
   String _newId() => DateTime.now().microsecondsSinceEpoch.toString();
 
@@ -22,20 +22,30 @@ class AppState extends ChangeNotifier {
   List<Event> get events => _events;
   List<ClassSession> get schedule => _schedule;
 
+  // -----------------------------
+  // INIT — Load only from Supabase
+  // -----------------------------
   Future<void> init() async {
-    _events = await _storage.loadEvents();
-    _schedule = await _storage.loadSchedule();
+    try {
+      _events = await _supabase.fetchEvents();
 
-    if (_schedule.isEmpty) {
-      _schedule = _generateSampleSchedule();
-      await _storage.saveSchedule(_schedule);
+      // Reschedule all notifications
+      for (final e in _events) {
+        if (e.reminderTime != null &&
+            e.reminderTime!.isAfter(DateTime.now())) {
+          await _notify.scheduleNotificationForEvent(e);
+        }
+      }
+    } catch (e) {
+      print("ERROR loading events: $e");
     }
 
     notifyListeners();
   }
 
-
-
+  // -----------------------------
+  // Events for a selected day
+  // -----------------------------
   List<Event> eventsForDay(DateTime day) {
     return _events
         .where((e) =>
@@ -59,38 +69,62 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // -----------------------------
+  // ADD EVENT
+  // -----------------------------
   Future<void> addEvent(Event event) async {
     final newEvent = event.copyWith(id: _newId());
     _events.add(newEvent);
-    await _storage.saveEvents(_events);
-    await _notifications.scheduleNotification(newEvent);
     notifyListeners();
+
+    try {
+      await _supabase.createEvent(newEvent);
+      await _notify.scheduleNotificationForEvent(newEvent);
+    } catch (e) {
+      print("AddEvent ERROR: $e");
+    }
   }
 
+  // -----------------------------
+  // UPDATE EVENT
+  // -----------------------------
   Future<void> updateEvent(Event updated) async {
     final index = _events.indexWhere((e) => e.id == updated.id);
     if (index == -1) return;
+
     _events[index] = updated;
-    await _storage.saveEvents(_events);
-    await _notifications.cancelNotification(updated.id);
-    await _notifications.scheduleNotification(updated);
     notifyListeners();
+
+    try {
+      await _supabase.updateEvent(updated);
+      await _notify.cancelNotification(updated.id);
+      await _notify.scheduleNotificationForEvent(updated);
+    } catch (e) {
+      print("UpdateEvent ERROR: $e");
+    }
   }
 
+  // -----------------------------
+  // DELETE EVENT
+  // -----------------------------
   Future<void> deleteEvent(String id) async {
     _events.removeWhere((e) => e.id == id);
-    await _storage.saveEvents(_events);
-    await _notifications.cancelNotification(id);
     notifyListeners();
+
+    try {
+      await _supabase.deleteEvent(id);
+      await _notify.cancelNotification(id);
+    } catch (e) {
+      print("DeleteEvent ERROR: $e");
+    }
   }
 
-
-
-  List<ClassSession> sessionsForDay(String dayOfWeek) {
-    return _schedule.where((s) => s.dayOfWeek == dayOfWeek).toList()
-      ..sort((a, b) => a.startTime.compareTo(b.startTime));
-  }
-
+  // -----------------------------
+  // Schedule (You can remove this too if using Supabase)
+  // -----------------------------
+  // -----------------------------
+// CREATE CLASS SESSION
+// -----------------------------
   Future<void> createClassSession({
     required String subject,
     required String dayOfWeek,
@@ -98,7 +132,7 @@ class AppState extends ChangeNotifier {
     required String endTime,
     required String room,
   }) async {
-    final newSession = ClassSession(
+    final session = ClassSession(
       id: _newId(),
       subject: subject,
       dayOfWeek: dayOfWeek,
@@ -106,51 +140,34 @@ class AppState extends ChangeNotifier {
       endTime: endTime,
       room: room,
     );
-    _schedule.add(newSession);
-    await _storage.saveSchedule(_schedule);
+
+    _schedule.add(session);
     notifyListeners();
   }
 
+// -----------------------------
+// UPDATE CLASS SESSION
+// -----------------------------
   Future<void> updateClassSession(ClassSession updated) async {
     final index = _schedule.indexWhere((s) => s.id == updated.id);
     if (index == -1) return;
+
     _schedule[index] = updated;
-    await _storage.saveSchedule(_schedule);
     notifyListeners();
   }
 
+// -----------------------------
+// DELETE CLASS SESSION
+// -----------------------------
   Future<void> deleteClassSession(String id) async {
     _schedule.removeWhere((s) => s.id == id);
-    await _storage.saveSchedule(_schedule);
     notifyListeners();
   }
 
-  List<ClassSession> _generateSampleSchedule() {
-    return [
-      ClassSession(
-        id: _newId(),
-        subject: 'Math',
-        dayOfWeek: 'Mon',
-        startTime: '09:00',
-        endTime: '10:00',
-        room: 'Room 101',
-      ),
-      ClassSession(
-        id: _newId(),
-        subject: 'English',
-        dayOfWeek: 'Mon',
-        startTime: '10:00',
-        endTime: '11:00',
-        room: 'Room 102',
-      ),
-      ClassSession(
-        id: _newId(),
-        subject: 'Science',
-        dayOfWeek: 'Tue',
-        startTime: '09:00',
-        endTime: '10:00',
-        room: 'Lab 1',
-      ),
-    ];
+  List<ClassSession> sessionsForDay(String day) {
+    return _schedule
+        .where((s) => s.dayOfWeek == day)
+        .toList()
+      ..sort((a, b) => a.startTime.compareTo(b.startTime));
   }
 }

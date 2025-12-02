@@ -9,31 +9,43 @@ import '../theme/pastel_background.dart';
 class ScheduleScreen extends StatelessWidget {
   const ScheduleScreen({super.key});
 
-  static const days = [
-    'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'
-  ];
+  static const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   String _dayEmoji(String code) {
     switch (code) {
-      case 'Mon': return "🌞";
-      case 'Tue': return "📘";
-      case 'Wed': return "🧋";
-      case 'Thu': return "📋";
-      case 'Fri': return "📚";
-      case 'Sat': return "☕";
-      default: return "📅";
+      case 'Mon':
+        return "🌞";
+      case 'Tue':
+        return "📘";
+      case 'Wed':
+        return "🧋";
+      case 'Thu':
+        return "📋";
+      case 'Fri':
+        return "📚";
+      case 'Sat':
+        return "☕";
+      default:
+        return "📅";
     }
   }
 
   String _dayLabel(String code) {
     switch (code) {
-      case 'Mon': return 'Monday';
-      case 'Tue': return 'Tuesday';
-      case 'Wed': return 'Wednesday';
-      case 'Thu': return 'Thursday';
-      case 'Fri': return 'Friday';
-      case 'Sat': return 'Saturday';
-      default: return code;
+      case 'Mon':
+        return 'Monday';
+      case 'Tue':
+        return 'Tuesday';
+      case 'Wed':
+        return 'Wednesday';
+      case 'Thu':
+        return 'Thursday';
+      case 'Fri':
+        return 'Friday';
+      case 'Sat':
+        return 'Saturday';
+      default:
+        return code;
     }
   }
 
@@ -46,7 +58,7 @@ class ScheduleScreen extends StatelessWidget {
         body: PastelBackground(
           child: Column(
             children: [
-              // 🌸 BIG EMOJI HEADER
+              // HEADER
               Padding(
                 padding: const EdgeInsets.fromLTRB(26, 26, 26, 10),
                 child: Column(
@@ -64,20 +76,17 @@ class ScheduleScreen extends StatelessWidget {
                       "View and manage your weekly classes",
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.black54.withOpacity(0.6),
+                        color: Colors.black54,
                       ),
                     ),
                   ],
                 ),
               ),
 
-              // 🌸 BODY CONTENT
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -91,7 +100,7 @@ class ScheduleScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 12),
 
-                      // Day Sections for each day
+                      // Day sections
                       ...days.map((day) {
                         final sessions = appState.sessionsForDay(day);
                         return _DaySection(
@@ -111,7 +120,6 @@ class ScheduleScreen extends StatelessWidget {
           ),
         ),
 
-        // Floating Action Button with modern look
         floatingActionButton: FloatingActionButton.extended(
           backgroundColor: const Color(0xFF6C4BFF),
           icon: const Icon(Icons.add, size: 24),
@@ -129,7 +137,6 @@ class ScheduleScreen extends StatelessWidget {
   }
 }
 
-// 🌸 DAY SECTION (Neumorphic Design)
 class _DaySection extends StatelessWidget {
   final String day;
   final String dayLabel;
@@ -166,13 +173,9 @@ class _DaySection extends StatelessWidget {
       child: ExpansionTile(
         iconColor: const Color(0xFF6C4BFF),
         collapsedIconColor: Colors.black54,
-
         title: Row(
           children: [
-            Text(
-              emoji,
-              style: const TextStyle(fontSize: 24),
-            ),
+            Text(emoji, style: const TextStyle(fontSize: 24)),
             const SizedBox(width: 12),
             Text(
               dayLabel,
@@ -184,19 +187,14 @@ class _DaySection extends StatelessWidget {
             ),
           ],
         ),
-
         childrenPadding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
-
         children: [
           if (sessions.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 6),
               child: Text(
                 "No classes yet ✨",
-                style: TextStyle(
-                  color: Colors.black54,
-                  fontSize: 14,
-                ),
+                style: TextStyle(color: Colors.black54, fontSize: 14),
               ),
             )
           else
@@ -207,7 +205,6 @@ class _DaySection extends StatelessWidget {
   }
 }
 
-// 🌸 CLASS TILE
 class _ClassTile extends StatelessWidget {
   final ClassSession session;
 
@@ -257,8 +254,8 @@ class _ClassTile extends StatelessWidget {
   }
 }
 
-// 🌸 CLASS ADD/EDIT DIALOG
-Future<void> _showClassDialog(BuildContext context, {ClassSession? existing}) async {
+Future<void> _showClassDialog(BuildContext context,
+    {ClassSession? existing}) async {
   final isEditing = existing != null;
 
   String selectedDay = existing?.dayOfWeek ?? 'Mon';
@@ -291,25 +288,21 @@ Future<void> _showClassDialog(BuildContext context, {ClassSession? existing}) as
               onChanged: (v) => selectedDay = v!,
             ),
             const SizedBox(height: 10),
-
             TextField(
               controller: subjectCtrl,
               decoration: const InputDecoration(labelText: "Subject 🎀"),
             ),
             const SizedBox(height: 10),
-
             TextField(
               controller: startCtrl,
               decoration: const InputDecoration(labelText: "Start Time ⏰"),
             ),
             const SizedBox(height: 10),
-
             TextField(
               controller: endCtrl,
               decoration: const InputDecoration(labelText: "End Time 🕰️"),
             ),
             const SizedBox(height: 10),
-
             TextField(
               controller: roomCtrl,
               decoration: const InputDecoration(labelText: "Room 🏫"),
@@ -348,7 +341,7 @@ Future<void> _showClassDialog(BuildContext context, {ClassSession? existing}) as
               if (ctx.mounted) Navigator.pop(ctx);
             },
             child: Text(isEditing ? "Save ✏️" : "Add"),
-          )
+          ),
         ],
       );
     },

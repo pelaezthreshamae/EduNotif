@@ -1,135 +1,105 @@
-import 'dart:io' show Platform;
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/event.dart';
 
 class NotificationService {
   NotificationService._internal();
-  static final NotificationService _instance = NotificationService._internal();
-  factory NotificationService() => _instance;
+  static final NotificationService instance = NotificationService._internal();
 
   final FlutterLocalNotificationsPlugin _plugin =
   FlutterLocalNotificationsPlugin();
 
-  bool _initialized = false;
-
   Future<void> init() async {
-    if (_initialized) return;
+    tzdata.initializeTimeZones();
 
-    // 🚫 Disable everything on web
-    if (kIsWeb) {
-      _initialized = true;
+    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const settings = InitializationSettings(android: android);
+
+    await _plugin.initialize(settings);
+
+    await _plugin
+        .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>()
+        ?.requestNotificationsPermission();
+  }
+
+  // ----------------------------------------------------------
+  // ⭐ TEST NOTIFICATION — REQUIRED BY SettingsScreen
+  // ----------------------------------------------------------
+  static Future<void> showTestNotification() async {
+    final now = DateTime.now().add(const Duration(seconds: 3));
+    final scheduled = tz.TZDateTime.from(now, tz.local);
+
+    await NotificationService.instance._plugin.zonedSchedule(
+      999001, // unique ID
+      "Test Notification 🔔",
+      "Your EDUNOTIF test alert is working!",
+      scheduled,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'event_channel',
+          'Event Notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      androidAllowWhileIdle: true,
+      payload: "test",
+      uiLocalNotificationDateInterpretation:
+      UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
+  // ----------------------------------------------------------
+  // ⭐ EVENT NOTIFICATIONS — used by AppState
+  // ----------------------------------------------------------
+  Future<void> scheduleNotificationForEvent(Event event) async {
+    if (event.reminderTime == null ||
+        event.reminderTime!.isBefore(DateTime.now())) {
       return;
     }
 
-    // 1️⃣ Timezone Setup
-    tz.initializeTimeZones();
-    tz.setLocalLocation(tz.getLocation('Asia/Manila'));
-
-    // 2️⃣ Initialization settings + REQUIRED CALLBACKS
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const iosInit = DarwinInitializationSettings();
-
-    const initSettings = InitializationSettings(
-      android: androidInit,
-      iOS: iosInit,
-    );
-
-    await _plugin.initialize(
-      initSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // handle notification tap
-        // (leave empty if you don't need to navigate)
-      },
-    );
-
-    // 3️⃣ Runtime permission for Android 13+
-    if (Platform.isAndroid) {
-      final androidImpl =
-      _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-
-      // ask for permissions
-      await androidImpl?.requestNotificationsPermission();
-    }
-
-    // 4️⃣ iOS permission
-    if (Platform.isIOS) {
-      final iosImpl = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
-
-      await iosImpl?.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-    }
-
-    _initialized = true;
-  }
-
-  /// Build notification content
-  NotificationDetails _buildDetails(EventType type) {
-    AndroidNotificationDetails android;
-    DarwinNotificationDetails ios;
-
-    android = AndroidNotificationDetails(
-      'default_channel',
-      'Event Reminders',
-      channelDescription: 'Notifications for upcoming events',
-      importance: Importance.high,
-      priority: Priority.high,
-      playSound: true,
-      sound: const RawResourceAndroidNotificationSound('notification'),
-    );
-
-    ios = const DarwinNotificationDetails(
-      sound: 'notification.wav', // must exist in iOS Runner folder
-    );
-
-    return NotificationDetails(android: android, iOS: ios);
-  }
-
-  int _idFor(String id) => id.hashCode & 0x7fffffff;
-
-  Future<void> scheduleNotification(Event event) async {
-    await init();
-    if (kIsWeb) return;
-
-    if (event.reminderBefore == null) return;
-
-    final scheduledDate = event.dateTime.subtract(event.reminderBefore!);
-    if (scheduledDate.isBefore(DateTime.now())) return;
-
-    final tzDate = tz.TZDateTime.from(scheduledDate, tz.local);
-
-    final details = _buildDetails(event.type);
+    final id = _safeId(event.id);
+    final scheduled = tz.TZDateTime.from(event.reminderTime!, tz.local);
 
     await _plugin.zonedSchedule(
-      _idFor(event.id),
+      id,
       event.title,
-      event.subject ?? event.description ?? 'Upcoming event',
-      tzDate,
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      event.description,
+      scheduled,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'event_channel',
+          'Event Notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+      androidAllowWhileIdle: true,
+      payload: event.id,
       uiLocalNotificationDateInterpretation:
       UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: null,
     );
   }
 
   Future<void> cancelNotification(String eventId) async {
-    await init();
-    if (kIsWeb) return;
-    await _plugin.cancel(_idFor(eventId));
+    final id = _safeId(eventId);
+    await _plugin.cancel(id);
   }
 
-  Future<void> cancelAll() async {
-    await init();
-    if (kIsWeb) return;
-    await _plugin.cancelAll();
+  // ----------------------------------------------------------
+  // Helper for safe notification ID
+  // ----------------------------------------------------------
+  int _safeId(String id) {
+    final digits = id.replaceAll(RegExp(r'\D'), '');
+
+    if (digits.length > 6) {
+      return int.parse(digits.substring(digits.length - 6));
+    }
+
+    return int.tryParse(digits) ??
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000);
   }
 }

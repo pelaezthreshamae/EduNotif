@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../main.dart'; // for MainNavigation
-import 'auth_screen.dart';
+import '../screens/main_navigation.dart';
+import 'login_screen.dart';
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
@@ -17,15 +17,14 @@ class _AuthGateState extends State<AuthGate> {
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
       builder: (context, snapshot) {
-        // Use currentSession as a fallback
         final session = snapshot.data?.session ??
             Supabase.instance.client.auth.currentSession;
 
         if (session == null) {
-          return const AuthScreen();
+          return const LoginScreen(); // Not logged in
         }
 
-        return const MainNavigation();
+        return const MainNavigation(); // Logged in
       },
     );
   }
